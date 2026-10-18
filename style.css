@@ -1,4 +1,3 @@
-
 :root {
   --bg-page: #f4f7fb;
   --bg-surface: #ffffff;
@@ -528,13 +527,21 @@ html, body {
 }
 
 .el-name {
-  font-size: 0.62rem;
-  font-weight: 600;
+  font-size: 0.58rem;
+  font-weight: 700;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.1;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.el-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .periodic-grid.compact-mobile-fit .el-mass {
@@ -1384,45 +1391,6 @@ html, body {
   gap: 8px;
 }
 
-.audio-story-btn {
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.16s ease;
-}
-
-.audio-story-btn:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.audio-story-btn.is-speaking {
-  background: #facc15;
-  color: #0f172a;
-  border-color: #fef08a;
-}
-
-.icon-btn.close-btn-dark {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-  font-size: 1rem;
-  width: 36px;
-  padding: 0;
-}
-
-.icon-btn.close-btn-dark:hover {
-  background: #ef4444;
-  border-color: #f87171;
-}
-
 /* Floating Speech Status Toast */
 .speech-toast {
   position: fixed;
@@ -1513,4 +1481,161 @@ html, body {
 .speech-toast-stop:hover {
   background: #ef4444;
   color: #ffffff;
+}
+/* ================= TEAM MODAL & CREDIT STYLES (CẬP NHẬT) ================= */
+
+/* Footer bao bọc nút credit ở cuối trang */
+.app-footer {
+  text-align: center;
+  padding: 10px 0 20px;
+  margin-top: 10px;
+}
+
+/* Nút Credit to và rõ hơn ở cuối trang */
+.team-credit-footer {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0369a1;
+  text-decoration: none;
+  display: inline-block;
+  padding: 10px 24px;
+  background: #f0f9ff;
+  border-radius: 999px;
+  border: 2px solid #bae6fd;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);
+  transition: all 0.25s ease;
+}
+
+.team-credit-footer:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.2);
+}
+
+/* Mở rộng thẻ Card của Modal (Rộng hơn) */
+.team-modal-card {
+  width: 100%;
+  max-width: 800px; /* Rộng hơn bản cũ */
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-modal-header {
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.team-modal-title {
+  font-size: 1.35rem; /* Chữ to hơn */
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Cấu trúc phần body của Modal */
+.team-modal-body {
+  padding: 30px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  gap: 20px;
+}
+
+/* Phóng to hình ảnh SVG */
+.team-deco-img {
+  width: 150px; /* Tăng kích thước ảnh to ra */
+  height: 150px;
+  object-fit: contain;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy nhẹ */
+  filter: drop-shadow(0px 8px 12px rgba(0, 0, 0, 0.1)); 
+  flex-shrink: 0;
+}
+
+.team-deco-img:hover {
+  transform: scale(1.15) rotate(6deg);
+}
+
+.left-img {
+  margin-left: 10px;
+}
+
+.right-img {
+  margin-right: 10px;
+}
+
+/* Container chứa danh sách tên để canh giữa */
+.team-list-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.team-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 350px; /* Giới hạn chiều rộng danh sách để trông cân đối */
+}
+
+/* Các thẻ tên thành viên */
+.team-list li {
+  font-size: 1.15rem; /* Chữ to hơn */
+  font-weight: 700;
+  color: #1e293b;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.team-list li:hover {
+  border-color: #38bdf8;
+  background: #f0f9ff;
+  color: #0284c7;
+  transform: translateY(-2px) scale(1.02); /* Phóng to nhẹ khi hover */
+  box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
+}
+
+/* Responsive cho điện thoại (Màn hình nhỏ) */
+@media (max-width: 768px) {
+  .team-modal-body {
+    flex-direction: column;
+    padding: 24px 16px;
+  }
+  
+  .team-deco-img {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .left-img, .right-img {
+    margin: 0;
+  }
+  
+  /* Chuyển 2 hình ảnh lên trên và xuống dưới danh sách */
+  .left-img { order: 1; }
+  .team-list-container { order: 2; width: 100%; }
+  .right-img { order: 3; }
+  
+  .team-list {
+    max-width: 100%;
+  }
 }

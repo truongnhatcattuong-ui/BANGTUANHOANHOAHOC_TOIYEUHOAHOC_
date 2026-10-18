@@ -3481,8 +3481,8 @@ const ELEMENTS_DATA = [
     "sym": "Mc",
     "nameEn": "Moscovium",
     "nameVi": "Moscovi",
-    "weight": "[289]",
-    "weightShort": "[289]",
+    "weight": "[288]",
+    "weightShort": "[288]",
     "cat": "post-transition",
     "period": 7,
     "group": "15 (VA)",
@@ -3680,25 +3680,27 @@ function pickBestVoice(langPrefix) {
   if (!voices.length) return null;
 
   const prefix = langPrefix.toLowerCase();
+  // Tìm tất cả các giọng đọc phù hợp với ngôn ngữ (en hoặc vi)
   const candidates = voices.filter((v) => v.lang && v.lang.toLowerCase().replace("_", "-").startsWith(prefix));
   if (!candidates.length) return null;
 
-  // Ưu tiên giọng đọc Natural / Online / Google / Apple chất lượng cao
-  const priorityKeywords = ["natural", "online", "google", "samantha", "daniel", "hoaimy", "namminh", "premium", "enhanced"];
+  // 1. Ưu tiên các giọng đọc tự nhiên (Premium, Natural, Google)
+  const priorityKeywords = ["natural", "premium", "enhanced", "online", "google", "samantha", "hoaimy", "namminh"];
   for (const kw of priorityKeywords) {
     const found = candidates.find((v) => v.name.toLowerCase().includes(kw));
     if (found) return found;
   }
 
-  // Với tiếng Anh, ưu tiên en-US hoặc en-GB chuẩn
+  // 2. Nếu là tiếng Anh, ưu tiên giọng Mỹ (US) hoặc Anh (GB) mặc định
   if (prefix === "en") {
-    const usOrGb = candidates.find((v) => {
-      const l = v.lang.toLowerCase().replace("_", "-");
-      return l === "en-us" || l === "en-gb";
-    });
-    if (usOrGb) return usOrGb;
+    const usVoice = candidates.find((v) => v.lang.toLowerCase().replace("_", "-") === "en-us");
+    if (usVoice) return usVoice;
+    
+    const gbVoice = candidates.find((v) => v.lang.toLowerCase().replace("_", "-") === "en-gb");
+    if (gbVoice) return gbVoice;
   }
 
+  // 3. Nếu không có gì đặc biệt, lấy giọng đầu tiên trong danh sách hợp lệ
   return candidates[0];
 }
 
@@ -3884,7 +3886,7 @@ function speakElement(elOrZ, modeOverride = null, forceSlow = false, activeBtnId
     }
   }
 
-  function playNextInQueue() {
+function playNextInQueue() {
     if (!speechState.isSpeaking || currentIdx >= queue.length) {
       finishSpeechGracefully(startedAt);
       return;
@@ -3895,30 +3897,16 @@ function speakElement(elOrZ, modeOverride = null, forceSlow = false, activeBtnId
     updateSpeechVisualState(item.title, item.sub, activeBtnId);
 
     const hasSpeechApi = "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
-    const matchedVoice = hasSpeechApi ? pickBestVoice(item.langPrefix) : null;
-
-    // Nếu trình duyệt không có sẵn giọng Tiếng Việt bản địa (matchedVoice == null khi đọc VI),
-    // ưu tiên gọi luồng âm thanh Cloud TTS chuẩn xác, nếu ngoại tuyến sẽ fallback về speechSynthesis
-    if (!matchedVoice && item.langPrefix === "vi") {
-      playCloudTtsFallback(item.text, "vi", item.rate, (ok) => {
-        if (ok || !hasSpeechApi) {
-          advanceQueue();
-        } else {
-          speakViaWebSpeech(item, null);
-        }
-      });
-      return;
-    }
-
+    
     if (hasSpeechApi) {
+      // Ép buộc dùng Web Speech API thay vì dựa vào Cloud TTS dễ bị lỗi
+      const matchedVoice = pickBestVoice(item.langPrefix);
       speakViaWebSpeech(item, matchedVoice);
     } else {
-      playCloudTtsFallback(item.text, item.langCode, item.rate, () => {
-        advanceQueue();
-      });
+      // Trình duyệt quá cũ không hỗ trợ đọc, chuyển sang đọc phần tiếp theo
+      advanceQueue();
     }
   }
-
   function speakViaWebSpeech(item, matchedVoice) {
     const u = new SpeechSynthesisUtterance(item.text);
     if (matchedVoice) {
@@ -3932,18 +3920,11 @@ function speakElement(elOrZ, modeOverride = null, forceSlow = false, activeBtnId
 
     const itemStart = Date.now();
     let handled = false;
-    const onComplete = (hadError) => {
+
+    const onComplete = () => {
       if (handled) return;
       handled = true;
-      const dur = Date.now() - itemStart;
-      // Nếu Web Speech kết thúc lỗi hoặc ngắt tức thì (<60ms do thiếu voice trên hệ điều hành), thử Cloud TTS
-      if ((hadError || dur < 60) && speechState.isSpeaking) {
-        playCloudTtsFallback(item.text, item.langCode, item.rate, () => {
-          advanceQueue();
-        });
-      } else {
-        advanceQueue();
-      }
+      advanceQueue(); // Chỉ đơn giản là đọc từ tiếp theo, bỏ qua Google TTS Fallback
     };
 
     u.onend = () => onComplete(false);
@@ -3956,63 +3937,9 @@ function speakElement(elOrZ, modeOverride = null, forceSlow = false, activeBtnId
       onComplete(true);
     }
   }
-
   speechState.utteranceQueueTimer = setTimeout(playNextInQueue, 40);
 }
 
-function speakHistoryStory(el) {
-  if (!el) return;
-  if (speechState.isSpeaking && document.getElementById("btnSpeakStory")?.classList.contains("is-speaking")) {
-    stopAllSpeech();
-    return;
-  }
-
-  stopAllSpeech();
-  playAcousticChime(el.z, false);
-
-  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
-
-  const fullText = `${el.nameVi}, tên quốc tế ${el.nameEn}. ${el.story}`;
-  const uStory = new SpeechSynthesisUtterance(fullText);
-  const viVoice = pickBestVoice("vi");
-  if (viVoice) {
-    uStory.voice = viVoice;
-    uStory.lang = viVoice.lang;
-  } else {
-    uStory.lang = "vi-VN";
-  }
-  uStory.rate = speechState.slowRate ? 0.82 : 1.0;
-
-  speechState.isSpeaking = true;
-  speechState.speakingZ = el.z;
-
-  const btnStory = document.getElementById("btnSpeakStory");
-  if (btnStory) btnStory.innerHTML = "⏹ Dừng đọc";
-
-  updateSpeechVisualState(
-    `📜 Đang đọc lịch sử: ${el.nameVi} (${el.sym})`,
-    `Khám phá: ${el.discoverer} (${el.year})`,
-    "btnSpeakStory"
-  );
-
-  uStory.onend = () => {
-    if (btnStory) btnStory.innerHTML = "🔊 Đọc câu chuyện";
-    stopAllSpeech();
-  };
-  uStory.onerror = () => {
-    if (btnStory) btnStory.innerHTML = "🔊 Đọc câu chuyện";
-    stopAllSpeech();
-  };
-
-  speechState.utteranceQueueTimer = setTimeout(() => {
-    try {
-      window.speechSynthesis.resume();
-      window.speechSynthesis.speak(uStory);
-    } catch (e) {
-      stopAllSpeech();
-    }
-  }, 45);
-}
 
 // ================= RENDER BẢNG TUẦN HOÀN 18 CỘT =================
 function renderPeriodicTable() {
@@ -4124,7 +4051,8 @@ function renderPeriodicTable() {
     cell.dataset.z = String(el.z);
     cell.dataset.cat = el.cat;
     cell.tabIndex = 0;
-    cell.title = `${el.z}. ${el.nameVi} (${el.nameEn}) ${el.ipa} — Bấm để xem mô hình 3D & thông số`;
+
+    cell.title = `${el.z}. ${el.nameEn} ${el.ipa} — Bấm để xem mô hình 3D & thông số`;
 
     const gridRow = el.row + 1;
     const gridCol = el.col + 1;
@@ -4137,8 +4065,8 @@ function renderPeriodicTable() {
         <span class="el-mass">${el.weightShort}</span>
       </div>
       <div class="el-sym">${el.sym}</div>
-      <div class="el-name">${el.nameVi}</div>
-      <button type="button" class="el-cell-speak" title="Phát âm nhanh: ${el.nameEn} (${el.ipa}) / ${el.pronounceVi}" aria-label="Phát âm ${el.nameVi}">🔊</button>
+      <div class="el-name">${el.nameEn}</div>
+      <button type="button" class="el-cell-speak" title="Phát âm chuẩn: ${el.nameEn} (${el.ipa})" aria-label="Phát âm ${el.nameEn}">🔊</button>
     `;
 
     const speakBtn = cell.querySelector(".el-cell-speak");
@@ -4215,8 +4143,6 @@ function elementMatchesFilter(el) {
 
   const q = normalizeVi(searchQuery);
   const catName = normalizeVi(CATEGORY_INFO[el.cat]?.name || "");
-  const nameViNorm = normalizeVi(el.nameVi);
-  const pronViNorm = normalizeVi(el.pronounceVi || "");
   const nameEnNorm = normalizeVi(el.nameEn);
   const groupNorm = normalizeVi(el.group);
   const periodStr = `chu ky ${el.period}`;
@@ -4227,8 +4153,6 @@ function elementMatchesFilter(el) {
     symNorm === q ||
     symNorm.includes(q) ||
     zStr === q ||
-    nameViNorm.includes(q) ||
-    pronViNorm.includes(q) ||
     nameEnNorm.includes(q) ||
     catName.includes(q) ||
     groupNorm.includes(q) ||
@@ -4314,10 +4238,8 @@ function openElementModal(z) {
   document.getElementById("modalBadgeZ").textContent = el.z;
   document.getElementById("modalBadgeSym").textContent = el.sym;
 
-  document.getElementById("modalFullName").textContent = el.nameVi;
-  document.getElementById("modalEnName").textContent = `(${el.nameEn})`;
+  document.getElementById("modalFullName").textContent = el.nameEn;
   document.getElementById("modalIpaBadge").textContent = el.ipa;
-  document.getElementById("modalViPronounceBadge").textContent = `[${el.pronounceVi}]`;
 
   const catPill = document.getElementById("modalCatPill");
   catPill.textContent = catInfo.name;
@@ -4329,8 +4251,8 @@ function openElementModal(z) {
 
   document.getElementById("propZ").textContent = `${el.z} (${el.z} proton, ${el.z} electron)`;
   document.getElementById("propSym").textContent = el.sym;
-  document.getElementById("propName").textContent = `${el.nameVi} — ${el.nameEn}`;
-  document.getElementById("propPhonetic").textContent = `IPA: ${el.ipa} • Đọc TV: ${el.pronounceVi}`;
+  document.getElementById("propName").textContent = el.nameEn;
+  document.getElementById("propPhonetic").textContent = `IPA: ${el.ipa}`;
   document.getElementById("propWeight").textContent = `${el.weight} u`;
   document.getElementById("propConfig").textContent = el.config;
   document.getElementById("propShellsText").textContent = `Phân bố lớp vỏ (${el.shells.length} lớp): ${el.shells.join(" – ")}`;
@@ -4390,38 +4312,35 @@ function navigateElement(delta) {
     populateHistoryModal(nextZ);
   }
 }
-
+function openHistoryModal() {
+  populateHistoryModal(currentElementZ); // Tải dữ liệu lịch sử của nguyên tố hiện tại
+  const histBackdrop = document.getElementById("historyModalBackdrop");
+  if (histBackdrop) {
+    histBackdrop.classList.add("open"); // Hiển thị popup
+  }
+  stopAllSpeech(); // Dừng các âm thanh đang đọc dở (nếu có)
+}
 function populateHistoryModal(z) {
   const el = ELEMENTS_DATA.find((item) => item.z === Number(z));
   if (!el) return;
   const catInfo = CATEGORY_INFO[el.cat] || CATEGORY_INFO["transition"];
 
   document.getElementById("histWindowTitle").textContent =
-    `📜 Lịch sử & Câu chuyện: ${el.nameVi} (${el.sym} – Z=${el.z})`;
+    `📜 Lịch sử & Câu chuyện: ${el.nameEn} (${el.sym} – Z=${el.z})`;
+  
   document.getElementById("histDiscovererVal").textContent = el.discoverer;
   document.getElementById("histYearVal").textContent = el.year;
   document.getElementById("histCategoryVal").textContent = `${catInfo.name} (Chu kỳ ${el.period}, Nhóm ${el.group})`;
   document.getElementById("histWeightVal").textContent = `${el.weight} u (IUPAC 2019)`;
   document.getElementById("histStoryText").textContent = el.story;
 
-  const btnStory = document.getElementById("btnSpeakStory");
-  if (btnStory) btnStory.innerHTML = "🔊 Đọc câu chuyện";
 }
-
-function openHistoryModal() {
-  populateHistoryModal(currentElementZ);
-  const histBackdrop = document.getElementById("historyModalBackdrop");
-  histBackdrop.classList.add("open");
-}
-
 function closeHistoryModal() {
-  const btnStory = document.getElementById("btnSpeakStory");
-  if (btnStory && btnStory.classList.contains("is-speaking")) {
-    stopAllSpeech();
-  }
-  if (btnStory) btnStory.innerHTML = "🔊 Đọc câu chuyện";
+  stopAllSpeech(); // Dừng đọc nếu đang đọc thông số mà đóng cửa sổ
   const histBackdrop = document.getElementById("historyModalBackdrop");
-  histBackdrop.classList.remove("open");
+  if (histBackdrop) {
+    histBackdrop.classList.remove("open");
+  }
 }
 
 function startAtom3DModel(el) {
@@ -4892,15 +4811,8 @@ function setupVoiceControls() {
   document.getElementById("btnPropCardSpeak")?.addEventListener("click", () => {
     speakElement(currentElementZ, speechState.langMode, false, "btnSpeakBothModal");
   });
-
-  document.getElementById("btnSpeakStory")?.addEventListener("click", () => {
-    const el = ELEMENTS_DATA.find((item) => item.z === Number(currentElementZ));
-    if (el) speakHistoryStory(el);
-  });
-
+  
   document.getElementById("btnStopSpeechToast")?.addEventListener("click", () => {
-    const btnStory = document.getElementById("btnSpeakStory");
-    if (btnStory) btnStory.innerHTML = "🔊 Đọc câu chuyện";
     stopAllSpeech();
   });
 }
@@ -4910,7 +4822,29 @@ function initApp() {
   renderPeriodicTable();
   setupAtom3DInteractions();
   setupVoiceControls();
+const btnOpenTeamModal = document.getElementById("btnOpenTeamModal");
+  const btnCloseTeamModal = document.getElementById("btnCloseTeamModal");
+  const teamModalBackdrop = document.getElementById("teamModalBackdrop");
 
+  if (btnOpenTeamModal && btnCloseTeamModal && teamModalBackdrop) {
+    // Mở Modal
+    btnOpenTeamModal.addEventListener("click", (e) => {
+      e.preventDefault(); // Ngăn chặn nhảy trang
+      teamModalBackdrop.classList.add("open");
+    });
+
+    // Đóng Modal khi bấm nút X
+    btnCloseTeamModal.addEventListener("click", () => {
+      teamModalBackdrop.classList.remove("open");
+    });
+
+    // Đóng Modal khi bấm ra ngoài vùng xám
+    teamModalBackdrop.addEventListener("click", (e) => {
+      if (e.target.id === "teamModalBackdrop") {
+        teamModalBackdrop.classList.remove("open");
+      }
+    });
+  }
   const searchInput = document.getElementById("searchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
 
@@ -4983,16 +4917,19 @@ function initApp() {
     }
   });
 
-  window.addEventListener("keydown", (e) => {
+window.addEventListener("keydown", (e) => {
     const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
     const isTyping = activeTag === "input" || activeTag === "textarea";
 
     const histOpen = document.getElementById("historyModalBackdrop").classList.contains("open");
     const elOpen = document.getElementById("elementModalBackdrop").classList.contains("open");
+    const teamOpen = document.getElementById("teamModalBackdrop")?.classList.contains("open"); // Thêm dòng này
 
     if (e.key === "Escape") {
       if (atom3DState.isFullscreen) {
         toggleAtom3DFullscreen(false);
+      } else if (teamOpen) { // Thêm điều kiện này
+        document.getElementById("teamModalBackdrop").classList.remove("open");
       } else if (histOpen) {
         closeHistoryModal();
       } else if (elOpen) {
@@ -5007,8 +4944,6 @@ function initApp() {
     }
   });
 }
-
-// Khởi chạy ứng dụng khi DOM đã sẵn sàng (Sửa lỗi thiếu lệnh gọi initApp ở bản gốc)
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);
 } else {

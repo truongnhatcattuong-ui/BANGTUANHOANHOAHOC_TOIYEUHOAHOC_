@@ -1,9 +1,8 @@
-
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BẢNG TUẦN HOÀN HÓA HỌC - IUPAC 2019 (Phát Âm Chuẩn)</title>
+  <title>BẢNG TUẦN HOÀN HÓA HỌC</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
@@ -14,10 +13,10 @@
     <!-- HEADER CHÍNH -->
     <header class="main-header">
       <div class="header-top-row">
-        <div class="title-block">
+      <div class="title-block">
           <h1 class="main-title">BẢNG TUẦN HOÀN HÓA HỌC</h1>
           <p class="source-subtitle">
-            Nguồn: <a href="https://iupac.qmul.ac.uk/AtWt/AtWt19.html" target="_blank" rel="noopener noreferrer">IUPAC ATOMIC WEIGHT OF THE ELEMENTS 2019</a> • Tích hợp Phát âm Chuẩn Quốc tế (IPA) &amp; Tiếng Việt
+            Nguồn: IUPAC ATOMIC WEIGHT OF THE ELEMENTS 2019 • Tích hợp Phát âm Chuẩn Quốc tế (IPA) &amp; Tiếng Việt
           </p>
         </div>
 
@@ -25,13 +24,13 @@
         <div class="controls-row">
           <div class="search-box">
             <span class="search-icon">🔎</span>
-            <input
-              type="text"
-              id="searchInput"
-              class="search-input"
-              placeholder="Tìm tên (Sắt, Iron), ký hiệu (Fe), số hiệu (26) hoặc nhóm (IA, VIIIA)..."
-              aria-label="Tìm kiếm nguyên tố hóa học"
-            />
+           <input
+             type="text"
+             id="searchInput"
+             class="search-input"
+             placeholder="Tìm tên nguyên tố (Hydrogen, Iron), ký hiệu (Fe), số hiệu (26)..."
+            aria-label="Tìm kiếm nguyên tố hóa học"
+/>
             <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Xóa tìm kiếm">✕</button>
           </div>
 
@@ -68,6 +67,10 @@
     <main class="table-outer-wrapper">
       <div id="periodicGrid" class="periodic-grid" aria-label="Lưới 18 cột Bảng tuần hoàn 118 nguyên tố hóa học"></div>
     </main>
+    <!-- ================= CREDIT TEAM Ở CUỐI TRANG ================= -->
+  <footer class="app-footer">
+    <a href="#" id="btnOpenTeamModal" class="team-credit-footer">by GR4 CLASSx/2 K62 THPTNH-HUE</a>
+  </footer>
   </div>
 
   <!-- THANH TRẠNG THÁI ĐANG PHÁT ÂM NỔI (AUDIO TOAST) -->
@@ -82,7 +85,7 @@
     <button type="button" id="btnStopSpeechToast" class="speech-toast-stop" title="Dừng đọc">⏹</button>
   </div>
 
-  <!-- ================= POPUP CHI TIẾT NGUYÊN TỐ ================= -->
+<!-- ================= POPUP CHI TIẾT NGUYÊN TỐ ================= -->
   <div id="elementModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalFullName">
     <div class="element-modal-card">
       <div class="element-modal-header">
@@ -91,12 +94,11 @@
             <span id="modalBadgeZ" class="badge-z">1</span>
             <span id="modalBadgeSym" class="badge-sym">H</span>
           </div>
+          
           <div class="el-header-titles">
             <div class="el-title-row">
-              <h2 id="modalFullName" class="el-full-name">Hiđro</h2>
-              <span id="modalEnName" class="el-en-name">(Hydrogen)</span>
+              <h2 id="modalFullName" class="el-full-name">Hydrogen</h2>
               <span id="modalIpaBadge" class="el-ipa-badge" title="Phiên âm Quốc tế chuẩn IPA">/ˈhaɪ.drə.dʒən/</span>
-              <span id="modalViPronounceBadge" class="el-vi-pron-badge" title="Cách đọc chuẩn Tiếng Việt">[Hi-đrô]</span>
             </div>
 
             <!-- CỤM NÚT PHÁT ÂM CHUẨN TRONG MODAL -->
@@ -174,8 +176,8 @@
                 <span class="prop-label">Tên đầy đủ &amp; Phiên âm</span>
                 <button type="button" id="btnPropCardSpeak" class="prop-mini-speak" title="Nghe phát âm tên nguyên tố">🔊 Nghe</button>
               </div>
-              <span id="propName" class="prop-value">Hiđro — Hydrogen</span>
-              <span id="propPhonetic" class="prop-sub">/ˈhaɪ.drə.dʒən/ • Đọc TV: Hi-đrô</span>
+              <span id="propName" class="prop-value">Hydrogen</span>
+              <span id="propPhonetic" class="prop-sub">/ˈhaɪ.drə.dʒən/</span>
             </div>
             <div class="prop-card">
               <span class="prop-label">Khối lượng nguyên tử (IUPAC 2019)</span>
@@ -222,9 +224,6 @@
       <div class="history-window-header">
         <h3 id="histWindowTitle" class="history-window-title">📜 Lịch sử &amp; Câu chuyện Nguyên tố</h3>
         <div class="history-header-actions">
-          <button type="button" id="btnSpeakStory" class="audio-story-btn" title="Đọc thuyết minh câu chuyện lịch sử khám phá nguyên tố">
-            🔊 Đọc câu chuyện
-          </button>
           <button type="button" id="btnCloseHistoryModal" class="icon-btn close-btn-dark" title="Đóng cửa sổ lịch sử">✕</button>
         </div>
       </div>
@@ -264,6 +263,61 @@
     </div>
   </div>
 
+  <!-- ================= CỬA SỔ DANH SÁCH THÀNH VIÊN ================= -->
+  <div id="teamModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="team-modal-card">
+      <div class="team-modal-header">
+        <h3 class="team-modal-title">🌟 Danh Sách Thành Viên - GR4</h3>
+        <button type="button" id="btnCloseTeamModal" class="icon-btn close-btn-dark" title="Đóng cửa sổ">✕</button>
+      </div>
+      
+      <div class="team-modal-body">
+        
+        <!-- Hình ảnh 1: Bình thí nghiệm (Phóng to) -->
+        <svg class="team-deco-img left-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M35 75 L42 40 L42 20 L58 20 L58 40 L65 75 A12 12 0 0 1 53 88 L47 88 A12 12 0 0 1 35 75 Z" fill="#e0f2fe" stroke="#0284c7" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M37.5 65 L62.5 65 L65 75 A12 12 0 0 1 53 88 L47 88 A12 12 0 0 1 35 75 Z" fill="#38bdf8"/>
+          <circle cx="45" cy="72" r="3" fill="#ffffff" opacity="0.8"/>
+          <circle cx="55" cy="80" r="2.5" fill="#ffffff" opacity="0.8"/>
+          <circle cx="50" cy="68" r="1.5" fill="#ffffff" opacity="0.8"/>
+          <circle cx="46" cy="52" r="3" fill="#0369a1"/>
+          <circle cx="54" cy="52" r="3" fill="#0369a1"/>
+          <path d="M47 58 Q50 62 53 58" fill="none" stroke="#0369a1" stroke-width="2" stroke-linecap="round"/>
+          <ellipse cx="42" cy="55" rx="3" ry="1.5" fill="#f472b6" opacity="0.6"/>
+          <ellipse cx="58" cy="55" rx="3" ry="1.5" fill="#f472b6" opacity="0.6"/>
+        </svg>
+        
+        <div class="team-list-container">
+          <ul class="team-list">
+            <li>Nguyễn Hữu Anh Khôi</li>
+            <li>Hồ Nguyên Minh Thảo</li>
+            <li>Hồ Thị Cẩm Nhi</li>
+            <li>Nguyễn Ngọc Thành</li>
+            <li>Phan Lê Phương Anh</li>
+            <li>Trần Việt</li>
+            <li>Trương Nhật Cát Tường</li>
+          </ul>
+        </div>
+        
+        <!-- Hình ảnh 2: Nguyên tử Hóa học (Phóng to) -->
+        <svg class="team-deco-img right-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="50" cy="50" rx="35" ry="12" fill="none" stroke="#93c5fd" stroke-width="3" transform="rotate(30 50 50)"/>
+          <ellipse cx="50" cy="50" rx="35" ry="12" fill="none" stroke="#93c5fd" stroke-width="3" transform="rotate(90 50 50)"/>
+          <ellipse cx="50" cy="50" rx="35" ry="12" fill="none" stroke="#93c5fd" stroke-width="3" transform="rotate(150 50 50)"/>
+          <circle cx="19" cy="32" r="4" fill="#3b82f6"/>
+          <circle cx="50" cy="15" r="4" fill="#3b82f6"/>
+          <circle cx="81" cy="68" r="4" fill="#3b82f6"/>
+          <circle cx="50" cy="50" r="14" fill="#facc15"/>
+          <circle cx="45" cy="48" r="2.5" fill="#854d0e"/>
+          <circle cx="55" cy="48" r="2.5" fill="#854d0e"/>
+          <path d="M46 53 Q50 57 54 53" fill="none" stroke="#854d0e" stroke-width="1.8" stroke-linecap="round"/>
+          <ellipse cx="41" cy="51" rx="2" ry="1.5" fill="#f87171" opacity="0.6"/>
+          <ellipse cx="59" cy="51" rx="2" ry="1.5" fill="#f87171" opacity="0.6"/>
+        </svg>
+        
+      </div>
+    </div>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
