@@ -72,7 +72,8 @@
 }
 
 html, body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Tối ưu kép: Ưu tiên Inter (Online), dự phòng system-ui (Offline) */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg-page);
   color: var(--text-main);
   line-height: 1.45;
@@ -1638,4 +1639,35 @@ html, body {
   .team-list {
     max-width: 100%;
   }
+}
+/* ================= CSS GIAO DIỆN TỐI (DARK MODE TÙY CHỈNH) ================= */
+body.dark-mode {
+  background: #0f172a; color: #f8fafc;
+}
+body.dark-mode .main-header {
+  background: #1e293b; border-color: #334155;
+}
+body.dark-mode .main-title { color: #f8fafc; }
+body.dark-mode .source-subtitle { color: #94a3b8; }
+body.dark-mode .search-input {
+  background: #0f172a; color: #f8fafc; border-color: #475569;
+}
+body.dark-mode .action-btn {
+  background: #0f172a; border-color: #475569; color: #cbd5e1;
+}
+body.dark-mode .action-btn:hover {
+  background: #334155; color: #ffffff;
+}
+body.dark-mode .cat-chip[data-cat="all"] {
+  background: #334155; color: #f8fafc; border-color: #475569;
+}
+body.dark-mode .table-outer-wrapper {
+  background: #1e293b; border-color: #334155;
+}
+body.dark-mode .group-header,
+body.dark-mode .period-header {
+  background: #0f172a; border-color: #334155; color: #94a3b8;
+}
+body.dark-mode .team-credit-footer {
+  background: #1e293b; border-color: #334155; color: #38bdf8;
 }

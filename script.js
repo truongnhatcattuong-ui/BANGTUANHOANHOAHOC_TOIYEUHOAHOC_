@@ -3780,6 +3780,14 @@ function finishSpeechGracefully(startedAt) {
 }
 
 function playCloudTtsFallback(text, langCode, playbackRate, onDone) {
+  // TỐI ƯU KÉP: Kiểm tra xem thiết bị có internet không
+  if (!navigator.onLine) {
+    console.warn("Thiết bị đang Offline. Bỏ qua Cloud TTS.");
+    updateSpeechVisualState("Lỗi Offline", "Không thể tải giọng đọc từ Cloud", "");
+    setTimeout(() => onDone(false), 1500); // Tự động đóng Toast sau 1.5s
+    return;
+  }
+
   try {
     const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${encodeURIComponent(langCode)}&dt=t&q=${encodeURIComponent(text)}`;
     const audio = new Audio();
@@ -3787,6 +3795,7 @@ function playCloudTtsFallback(text, langCode, playbackRate, onDone) {
     audio.src = url;
     audio.playbackRate = playbackRate || 1.0;
     speechState.activeAudioEl = audio;
+    
     let finished = false;
     const done = (ok) => {
       if (finished) return;
@@ -3795,6 +3804,7 @@ function playCloudTtsFallback(text, langCode, playbackRate, onDone) {
     };
     audio.onended = () => done(true);
     audio.onerror = () => done(false);
+    
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch(() => done(false));
@@ -3939,7 +3949,18 @@ function playNextInQueue() {
   }
   speechState.utteranceQueueTimer = setTimeout(playNextInQueue, 40);
 }
-
+// ================= HÀM DEBOUNCE (TỐI ƯU TÌM KIẾM) =================
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
 // ================= RENDER BẢNG TUẦN HOÀN 18 CỘT =================
 function renderPeriodicTable() {
@@ -3979,16 +4000,7 @@ function renderPeriodicTable() {
   lanRange.style.gridRow = "7";
   lanRange.style.gridColumn = "4";
   lanRange.tabIndex = 0;
-  lanRange.setAttribute("role", "button");
   lanRange.innerHTML = '<span class="range-num">57–71</span><span class="range-lbl">La–Lu</span>';
-  lanRange.title = "Nhấn để làm nổi bật Họ Lantan (57–71)";
-  lanRange.addEventListener("click", () => toggleCategoryFilter("lanthanide"));
-  lanRange.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleCategoryFilter("lanthanide");
-    }
-  });
   grid.appendChild(lanRange);
 
   const actRange = document.createElement("div");
@@ -3997,16 +4009,7 @@ function renderPeriodicTable() {
   actRange.style.gridRow = "8";
   actRange.style.gridColumn = "4";
   actRange.tabIndex = 0;
-  actRange.setAttribute("role", "button");
   actRange.innerHTML = '<span class="range-num">89–103</span><span class="range-lbl">Ac–Lr</span>';
-  actRange.title = "Nhấn để làm nổi bật Họ Actini (89–103)";
-  actRange.addEventListener("click", () => toggleCategoryFilter("actinide"));
-  actRange.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleCategoryFilter("actinide");
-    }
-  });
   grid.appendChild(actRange);
 
   const lanLabel = document.createElement("div");
@@ -4015,16 +4018,7 @@ function renderPeriodicTable() {
   lanLabel.style.gridRow = "10";
   lanLabel.style.gridColumn = "1 / span 4";
   lanLabel.tabIndex = 0;
-  lanLabel.setAttribute("role", "button");
   lanLabel.textContent = "✱ Họ Lantan (57–71)";
-  lanLabel.style.cursor = "pointer";
-  lanLabel.addEventListener("click", () => toggleCategoryFilter("lanthanide"));
-  lanLabel.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleCategoryFilter("lanthanide");
-    }
-  });
   grid.appendChild(lanLabel);
 
   const actLabel = document.createElement("div");
@@ -4033,17 +4027,11 @@ function renderPeriodicTable() {
   actLabel.style.gridRow = "11";
   actLabel.style.gridColumn = "1 / span 4";
   actLabel.tabIndex = 0;
-  actLabel.setAttribute("role", "button");
   actLabel.textContent = "✱✱ Họ Actini (89–103)";
-  actLabel.style.cursor = "pointer";
-  actLabel.addEventListener("click", () => toggleCategoryFilter("actinide"));
-  actLabel.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleCategoryFilter("actinide");
-    }
-  });
   grid.appendChild(actLabel);
+
+  // Dùng DocumentFragment để gom 118 nguyên tố vẽ 1 lần duy nhất
+  const fragment = document.createDocumentFragment();
 
   ELEMENTS_DATA.forEach((el) => {
     const cell = document.createElement("div");
@@ -4051,13 +4039,9 @@ function renderPeriodicTable() {
     cell.dataset.z = String(el.z);
     cell.dataset.cat = el.cat;
     cell.tabIndex = 0;
-
-    cell.title = `${el.z}. ${el.nameEn} ${el.ipa} — Bấm để xem mô hình 3D & thông số`;
-
-    const gridRow = el.row + 1;
-    const gridCol = el.col + 1;
-    cell.style.gridRow = String(gridRow);
-    cell.style.gridColumn = String(gridCol);
+    cell.title = `${el.z}. ${el.nameEn} ${el.ipa} — Bấm để xem thông số`;
+    cell.style.gridRow = String(el.row + 1);
+    cell.style.gridColumn = String(el.col + 1);
 
     cell.innerHTML = `
       <div class="el-top">
@@ -4066,24 +4050,30 @@ function renderPeriodicTable() {
       </div>
       <div class="el-sym">${el.sym}</div>
       <div class="el-name">${el.nameEn}</div>
-      <button type="button" class="el-cell-speak" title="Phát âm chuẩn: ${el.nameEn} (${el.ipa})" aria-label="Phát âm ${el.nameEn}">🔊</button>
+      <button type="button" class="el-cell-speak" title="Phát âm chuẩn">🔊</button>
     `;
+    fragment.appendChild(cell);
+  });
+  
+  grid.appendChild(fragment);
 
-    const speakBtn = cell.querySelector(".el-cell-speak");
-    speakBtn.addEventListener("click", (e) => {
+  // Kỹ thuật Event Delegation: Gắn 1 sự kiện duy nhất thay vì 118 sự kiện
+  grid.addEventListener("click", (e) => {
+    const speakBtn = e.target.closest('.el-cell-speak');
+    if (speakBtn) {
       e.stopPropagation();
-      speakElement(el);
-    });
+      speakElement(speakBtn.closest('.el-cell').dataset.z);
+      return;
+    }
 
-    cell.addEventListener("click", () => openElementModal(el.z));
-    cell.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openElementModal(el.z);
-      }
-    });
+    const cell = e.target.closest('.el-cell');
+    if (cell) {
+      openElementModal(cell.dataset.z);
+      return;
+    }
 
-    grid.appendChild(cell);
+    const rangeCell = e.target.closest('.range-cell, .series-label-cell');
+    if (rangeCell) toggleCategoryFilter(rangeCell.dataset.cat);
   });
 
   applyHighlightAndFilter();
@@ -4944,8 +4934,62 @@ window.addEventListener("keydown", (e) => {
     }
   });
 }
+
+  initApp();
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
+  document.addEventListener("DOMContentLoaded", function() {
+    initApp();
+    setupFullscreen();
+    setupThemeToggle();
+  });
 } else {
   initApp();
+  setupFullscreen();
+  setupThemeToggle();
+}
+
+function setupFullscreen() {
+  const btnFullscreenPage = document.getElementById("btnFullscreenTable");
+  if (!btnFullscreenPage) return;
+
+  function toggleDashboardFullscreen() {
+    const elem = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (elem.requestFullscreen) elem.requestFullscreen();
+      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+  }
+
+  btnFullscreenPage.addEventListener("click", toggleDashboardFullscreen);
+
+  const updateFsBtnText = () => {
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    btnFullscreenPage.innerHTML = isFs ? "🗗 Thu nhỏ trang" : "⛶ Toàn màn hình";
+    if (isFs) document.body.classList.add("is-fullscreen");
+    else document.body.classList.remove("is-fullscreen");
+  };
+
+  document.addEventListener("fullscreenchange", updateFsBtnText);
+  document.addEventListener("webkitfullscreenchange", updateFsBtnText);
+}
+
+function setupThemeToggle() {
+  const btnTheme = document.getElementById("btnThemeToggle");
+  if (!btnTheme) return;
+
+  const isDark = localStorage.getItem("periodic_theme") === "dark";
+  if (isDark) {
+    document.body.classList.add("dark-mode");
+    btnTheme.innerHTML = "☀️ Giao diện Sáng";
+  }
+
+  btnTheme.addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+    const currentlyDark = document.body.classList.contains("dark-mode");
+    btnTheme.innerHTML = currentlyDark ? "☀️ Giao diện Sáng" : "🌙 Giao diện Tối";
+    localStorage.setItem("periodic_theme", currentlyDark ? "dark" : "light");
+  });
 }

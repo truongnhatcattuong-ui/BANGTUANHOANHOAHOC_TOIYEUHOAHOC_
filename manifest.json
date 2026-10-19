@@ -1,0 +1,9 @@
+{
+  "name": "Bảng Tuần Hoàn Hóa Học",
+  "short_name": "Hóa Học",
+  "description": "Bảng tuần hoàn 118 nguyên tố tích hợp 3D và phát âm chuẩn.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0284c7"
+}
