@@ -3,16 +3,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BẢNG TUẦN HOÀN HÓA HỌC</title>
-  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
   <link rel="stylesheet" href="style.css" />
-  
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0284c7">
-  
-  <script src="script.js" defer></script>
 </head>
 <body>
   <div class="app-container">
@@ -52,10 +46,10 @@
               🔔 Tự đọc khi mở: <span id="autoSpeakText">Bật</span>
             </button>
           </div>
-          
           <button type="button" id="btnThemeToggle" class="action-btn" title="Chuyển đổi giao diện Sáng/Tối">
             🌙 Giao diện Tối
           </button>
+          
           <button type="button" id="btnCompactToggle" class="action-btn" title="Thu gọn hoặc phóng chuẩn bảng trên màn hình nhỏ">
             📱 Thu gọn bảng
           </button>
@@ -65,7 +59,7 @@
         </div>
       </div>
 
-      <!-- THANH PHÂN LOẠI NHÓM NGUYÊN TỐ -->
+      <!-- THANH PHÂN LOẠI NHÓM NGUYÊN TỐ (NHẤP ĐỂ LÀM SÁNG NỔI BẬT) -->
       <div class="category-bar-wrap">
         <div id="categoryList" class="category-list" role="tablist" aria-label="Phân loại nhóm nguyên tố"></div>
         <div id="filterStatusBox" class="filter-status" style="display: none;">
@@ -75,18 +69,17 @@
       </div>
     </header>
 
-    <!-- LƯỚI BẢNG TUẦN HOÀN -->
+    <!-- LƯỚI BẢNG TUẦN HOÀN CHUẨN 18 CỘT & 118 NGUYÊN TỐ -->
     <main class="table-outer-wrapper">
       <div id="periodicGrid" class="periodic-grid" aria-label="Lưới 18 cột Bảng tuần hoàn 118 nguyên tố hóa học"></div>
     </main>
-    
-    <!-- CREDIT TEAM Ở CUỐI TRANG -->
-    <footer class="app-footer">
-      <a href="#" id="btnOpenTeamModal" class="team-credit-footer">Tạo bởi nhóm 4 , lớp 10/2 , năm học 2026-2027 , THPT Nguyễn Huệ-Thành Phố Huế</a>
-    </footer>
+    <!-- ================= CREDIT TEAM Ở CUỐI TRANG ================= -->
+  <footer class="app-footer">
+    <a href="#" id="btnOpenTeamModal" class="team-credit-footer">Tạo bởi nhóm 4 , lớp 10/2 , năm học 2026-2027 , THPT Nguyễn Huệ-Thành Phố Huế</a>
+  </footer>
   </div>
 
-  <!-- THANH TRẠNG THÁI ĐANG PHÁT ÂM NỔI -->
+  <!-- THANH TRẠNG THÁI ĐANG PHÁT ÂM NỔI (AUDIO TOAST) -->
   <div id="speechToast" class="speech-toast" role="status" aria-live="polite">
     <div class="speech-wave" aria-hidden="true">
       <span></span><span></span><span></span><span></span>
@@ -98,7 +91,7 @@
     <button type="button" id="btnStopSpeechToast" class="speech-toast-stop" title="Dừng đọc">⏹</button>
   </div>
 
-  <!-- POPUP CHI TIẾT NGUYÊN TỐ -->
+<!-- ================= POPUP CHI TIẾT NGUYÊN TỐ ================= -->
   <div id="elementModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalFullName">
     <div class="element-modal-card">
       <div class="element-modal-header">
@@ -173,7 +166,7 @@
           <div id="atomShellsBar" class="atom-shells-bar"></div>
         </div>
 
-        <!-- CỘT PHẢI: THÔNG SỐ & MỤC NHỎ LỊCH SỬ TƯƠNG TÁC -->
+        <!-- CỘT PHẢI: 8 THÔNG SỐ KHOA HỌC & MỤC NHỎ LỊCH SỬ TƯƠNG TÁC -->
         <div class="element-info-column">
           <div class="props-grid">
             <div class="prop-card">
@@ -215,7 +208,7 @@
             </div>
           </div>
 
-          <!-- MỤC NHỎ LỊCH SỬ NGUYÊN TỐ -->
+          <!-- MỤC NHỎ LỊCH SỬ NGUYÊN TỐ (BẤM ĐỂ MỞ CỬA SỔ LỊCH SỬ RIÊNG) -->
           <div id="historyMiniCard" class="history-mini-card" role="button" tabindex="0" aria-label="Mở cửa sổ lịch sử khám phá nguyên tố">
             <div class="history-mini-top">
               <span class="history-mini-badge">📜 LỊCH SỬ KHÁM PHÁ &amp; CÂU CHUYỆN NGUYÊN TỐ</span>
@@ -231,7 +224,7 @@
     </div>
   </div>
 
-  <!-- CỬA SỔ RIÊNG LỊCH SỬ CỦA NGUYÊN TỐ -->
+  <!-- ================= CỬA SỔ RIÊNG LỊCH SỬ CỦA NGUYÊN TỐ ================= -->
   <div id="historyModalBackdrop" class="history-window-backdrop" role="dialog" aria-modal="true" aria-labelledby="histWindowTitle">
     <div class="history-window-card">
       <div class="history-window-header">
@@ -276,7 +269,7 @@
     </div>
   </div>
 
-  <!-- CỬA SỔ DANH SÁCH THÀNH VIÊN -->
+  <!-- ================= CỬA SỔ DANH SÁCH THÀNH VIÊN ================= -->
   <div id="teamModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
     <div class="team-modal-card">
       <div class="team-modal-header">
@@ -285,6 +278,8 @@
       </div>
       
       <div class="team-modal-body">
+        
+        <!-- Hình ảnh 1: Bình thí nghiệm (Phóng to) -->
         <svg class="team-deco-img left-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <path d="M35 75 L42 40 L42 20 L58 20 L58 40 L65 75 A12 12 0 0 1 53 88 L47 88 A12 12 0 0 1 35 75 Z" fill="#e0f2fe" stroke="#0284c7" stroke-width="4" stroke-linejoin="round"/>
           <path d="M37.5 65 L62.5 65 L65 75 A12 12 0 0 1 53 88 L47 88 A12 12 0 0 1 35 75 Z" fill="#38bdf8"/>
@@ -310,6 +305,7 @@
           </ul>
         </div>
         
+        <!-- Hình ảnh 2: Nguyên tử Hóa học (Phóng to) -->
         <svg class="team-deco-img right-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <ellipse cx="50" cy="50" rx="35" ry="12" fill="none" stroke="#93c5fd" stroke-width="3" transform="rotate(30 50 50)"/>
           <ellipse cx="50" cy="50" rx="35" ry="12" fill="none" stroke="#93c5fd" stroke-width="3" transform="rotate(90 50 50)"/>
@@ -324,22 +320,10 @@
           <ellipse cx="41" cy="51" rx="2" ry="1.5" fill="#f87171" opacity="0.6"/>
           <ellipse cx="59" cy="51" rx="2" ry="1.5" fill="#f87171" opacity="0.6"/>
         </svg>
+        
       </div>
     </div>
   </div>
-
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js")
-          .then((registration) => {
-            console.log("Service Worker đã đăng ký thành công với phạm vi:", registration.scope);
-          })
-          .catch((error) => {
-            console.log("Đăng ký Service Worker thất bại:", error);
-          });
-      });
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

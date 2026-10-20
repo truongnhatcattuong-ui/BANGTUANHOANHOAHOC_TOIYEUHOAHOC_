@@ -72,8 +72,7 @@
 }
 
 html, body {
-  /* Tối ưu kép: Ưu tiên Inter (Online), dự phòng system-ui (Offline) */
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-page);
   color: var(--text-main);
   line-height: 1.45;

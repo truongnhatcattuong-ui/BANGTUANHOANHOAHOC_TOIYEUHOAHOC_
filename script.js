@@ -3780,14 +3780,6 @@ function finishSpeechGracefully(startedAt) {
 }
 
 function playCloudTtsFallback(text, langCode, playbackRate, onDone) {
-  // TỐI ƯU KÉP: Kiểm tra xem thiết bị có internet không
-  if (!navigator.onLine) {
-    console.warn("Thiết bị đang Offline. Bỏ qua Cloud TTS.");
-    updateSpeechVisualState("Lỗi Offline", "Không thể tải giọng đọc từ Cloud", "");
-    setTimeout(() => onDone(false), 1500); // Tự động đóng Toast sau 1.5s
-    return;
-  }
-
   try {
     const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${encodeURIComponent(langCode)}&dt=t&q=${encodeURIComponent(text)}`;
     const audio = new Audio();
@@ -3795,7 +3787,6 @@ function playCloudTtsFallback(text, langCode, playbackRate, onDone) {
     audio.src = url;
     audio.playbackRate = playbackRate || 1.0;
     speechState.activeAudioEl = audio;
-    
     let finished = false;
     const done = (ok) => {
       if (finished) return;
@@ -3804,7 +3795,6 @@ function playCloudTtsFallback(text, langCode, playbackRate, onDone) {
     };
     audio.onended = () => done(true);
     audio.onerror = () => done(false);
-    
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch(() => done(false));
@@ -3949,18 +3939,7 @@ function playNextInQueue() {
   }
   speechState.utteranceQueueTimer = setTimeout(playNextInQueue, 40);
 }
-// ================= HÀM DEBOUNCE (TỐI ƯU TÌM KIẾM) =================
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
+
 
 // ================= RENDER BẢNG TUẦN HOÀN 18 CỘT =================
 function renderPeriodicTable() {
@@ -4000,7 +3979,16 @@ function renderPeriodicTable() {
   lanRange.style.gridRow = "7";
   lanRange.style.gridColumn = "4";
   lanRange.tabIndex = 0;
+  lanRange.setAttribute("role", "button");
   lanRange.innerHTML = '<span class="range-num">57–71</span><span class="range-lbl">La–Lu</span>';
+  lanRange.title = "Nhấn để làm nổi bật Họ Lantan (57–71)";
+  lanRange.addEventListener("click", () => toggleCategoryFilter("lanthanide"));
+  lanRange.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleCategoryFilter("lanthanide");
+    }
+  });
   grid.appendChild(lanRange);
 
   const actRange = document.createElement("div");
@@ -4009,7 +3997,16 @@ function renderPeriodicTable() {
   actRange.style.gridRow = "8";
   actRange.style.gridColumn = "4";
   actRange.tabIndex = 0;
+  actRange.setAttribute("role", "button");
   actRange.innerHTML = '<span class="range-num">89–103</span><span class="range-lbl">Ac–Lr</span>';
+  actRange.title = "Nhấn để làm nổi bật Họ Actini (89–103)";
+  actRange.addEventListener("click", () => toggleCategoryFilter("actinide"));
+  actRange.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleCategoryFilter("actinide");
+    }
+  });
   grid.appendChild(actRange);
 
   const lanLabel = document.createElement("div");
@@ -4018,7 +4015,16 @@ function renderPeriodicTable() {
   lanLabel.style.gridRow = "10";
   lanLabel.style.gridColumn = "1 / span 4";
   lanLabel.tabIndex = 0;
+  lanLabel.setAttribute("role", "button");
   lanLabel.textContent = "✱ Họ Lantan (57–71)";
+  lanLabel.style.cursor = "pointer";
+  lanLabel.addEventListener("click", () => toggleCategoryFilter("lanthanide"));
+  lanLabel.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleCategoryFilter("lanthanide");
+    }
+  });
   grid.appendChild(lanLabel);
 
   const actLabel = document.createElement("div");
@@ -4027,11 +4033,17 @@ function renderPeriodicTable() {
   actLabel.style.gridRow = "11";
   actLabel.style.gridColumn = "1 / span 4";
   actLabel.tabIndex = 0;
+  actLabel.setAttribute("role", "button");
   actLabel.textContent = "✱✱ Họ Actini (89–103)";
+  actLabel.style.cursor = "pointer";
+  actLabel.addEventListener("click", () => toggleCategoryFilter("actinide"));
+  actLabel.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleCategoryFilter("actinide");
+    }
+  });
   grid.appendChild(actLabel);
-
-  // Dùng DocumentFragment để gom 118 nguyên tố vẽ 1 lần duy nhất
-  const fragment = document.createDocumentFragment();
 
   ELEMENTS_DATA.forEach((el) => {
     const cell = document.createElement("div");
@@ -4039,9 +4051,13 @@ function renderPeriodicTable() {
     cell.dataset.z = String(el.z);
     cell.dataset.cat = el.cat;
     cell.tabIndex = 0;
-    cell.title = `${el.z}. ${el.nameEn} ${el.ipa} — Bấm để xem thông số`;
-    cell.style.gridRow = String(el.row + 1);
-    cell.style.gridColumn = String(el.col + 1);
+
+    cell.title = `${el.z}. ${el.nameEn} ${el.ipa} — Bấm để xem mô hình 3D & thông số`;
+
+    const gridRow = el.row + 1;
+    const gridCol = el.col + 1;
+    cell.style.gridRow = String(gridRow);
+    cell.style.gridColumn = String(gridCol);
 
     cell.innerHTML = `
       <div class="el-top">
@@ -4050,30 +4066,24 @@ function renderPeriodicTable() {
       </div>
       <div class="el-sym">${el.sym}</div>
       <div class="el-name">${el.nameEn}</div>
-      <button type="button" class="el-cell-speak" title="Phát âm chuẩn">🔊</button>
+      <button type="button" class="el-cell-speak" title="Phát âm chuẩn: ${el.nameEn} (${el.ipa})" aria-label="Phát âm ${el.nameEn}">🔊</button>
     `;
-    fragment.appendChild(cell);
-  });
-  
-  grid.appendChild(fragment);
 
-  // Kỹ thuật Event Delegation: Gắn 1 sự kiện duy nhất thay vì 118 sự kiện
-  grid.addEventListener("click", (e) => {
-    const speakBtn = e.target.closest('.el-cell-speak');
-    if (speakBtn) {
+    const speakBtn = cell.querySelector(".el-cell-speak");
+    speakBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      speakElement(speakBtn.closest('.el-cell').dataset.z);
-      return;
-    }
+      speakElement(el);
+    });
 
-    const cell = e.target.closest('.el-cell');
-    if (cell) {
-      openElementModal(cell.dataset.z);
-      return;
-    }
+    cell.addEventListener("click", () => openElementModal(el.z));
+    cell.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openElementModal(el.z);
+      }
+    });
 
-    const rangeCell = e.target.closest('.range-cell, .series-label-cell');
-    if (rangeCell) toggleCategoryFilter(rangeCell.dataset.cat);
+    grid.appendChild(cell);
   });
 
   applyHighlightAndFilter();
@@ -4872,7 +4882,7 @@ const btnOpenTeamModal = document.getElementById("btnOpenTeamModal");
     grid.classList.toggle("compact-mobile-fit", isCompactMobile);
     btnCompactToggle.textContent = isCompactMobile ? "🔍 Kích thước chuẩn" : "📱 Thu gọn bảng";
   });
-
+ 
   document.getElementById("btnCloseElementModal").addEventListener("click", closeElementModal);
   document.getElementById("btnPrevElement").addEventListener("click", () => navigateElement(-1));
   document.getElementById("btnNextElement").addEventListener("click", () => navigateElement(1));
@@ -4933,9 +4943,10 @@ window.addEventListener("keydown", (e) => {
       navigateElement(1);
     }
   });
+ 
 }
-
-  initApp();
+// Khởi chạy ứng dụng an toàn khi DOM đã tải xong
+// Khởi chạy ứng dụng an toàn khi DOM đã tải xong
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function() {
     initApp();
@@ -4948,18 +4959,25 @@ if (document.readyState === "loading") {
   setupThemeToggle();
 }
 
+// --- HÀM XỬ LÝ TOÀN MÀN HÌNH (Chỉ đổi kích thước, không ép đổi màu) ---
 function setupFullscreen() {
   const btnFullscreenPage = document.getElementById("btnFullscreenTable");
   if (!btnFullscreenPage) return;
 
   function toggleDashboardFullscreen() {
-    const elem = document.documentElement;
+    const elem = document.documentElement; // Phóng to toàn bộ thẻ <html>
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-      if (elem.requestFullscreen) elem.requestFullscreen();
-      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      }
     } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
     }
   }
 
@@ -4968,28 +4986,40 @@ function setupFullscreen() {
   const updateFsBtnText = () => {
     const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
     btnFullscreenPage.innerHTML = isFs ? "🗗 Thu nhỏ trang" : "⛶ Toàn màn hình";
-    if (isFs) document.body.classList.add("is-fullscreen");
-    else document.body.classList.remove("is-fullscreen");
+    btnFullscreenPage.title = isFs ? "Thoát chế độ toàn màn hình (Esc)" : "Phóng to thành bảng điều khiển toàn màn hình";
+    
+    if (isFs) {
+      document.body.classList.add("is-fullscreen");
+    } else {
+      document.body.classList.remove("is-fullscreen");
+    }
   };
 
   document.addEventListener("fullscreenchange", updateFsBtnText);
   document.addEventListener("webkitfullscreenchange", updateFsBtnText);
 }
 
+// --- HÀM XỬ LÝ GIAO DIỆN TỐI/SÁNG MỚI CHUYÊN DỤNG ---
 function setupThemeToggle() {
   const btnTheme = document.getElementById("btnThemeToggle");
   if (!btnTheme) return;
 
+  // Kiểm tra xem trình duyệt có lưu giao diện tối từ lần trước truy cập không
   const isDark = localStorage.getItem("periodic_theme") === "dark";
   if (isDark) {
     document.body.classList.add("dark-mode");
     btnTheme.innerHTML = "☀️ Giao diện Sáng";
   }
 
+  // Lắng nghe sự kiện click bật/tắt
   btnTheme.addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
     const currentlyDark = document.body.classList.contains("dark-mode");
+    
+    // Đổi chữ và icon trên nút
     btnTheme.innerHTML = currentlyDark ? "☀️ Giao diện Sáng" : "🌙 Giao diện Tối";
+    
+    // Lưu lại lựa chọn vào máy người dùng
     localStorage.setItem("periodic_theme", currentlyDark ? "dark" : "light");
   });
 }
